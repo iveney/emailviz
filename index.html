@@ -45,15 +45,28 @@
 			}
 		});
 	}
+	
+	function updateValue(val) {
+	      document.getElementById('yearText').value = val; 
+	}
+	
+	// update the map according to year
+	function updateMap(year) {
+		console.log(window.locations);
+	}
+	
 	</script>
 	<!-- Date: 2013-01-30 -->
 </head>
 <body onload="initialize()">
 	<input type="file" id="files" name="files[]" />
-	<p><output id="content">File contents will be displayed here.</output></p>
+	<span id="miny">1900</span>
+	<input type="range" id="years" value="1900" min="1900" max="2013" onchange="updateValue(this.value);updateMap(this.value);">
+	<span id="maxy">2013</span>
+	<input type="text" id="yearText" value="1900">
+	<!-- <p><output id="content">File contents will be displayed here.</output></p> -->
 
 	<script>
-
 	// reads the file content
 	function handleFileSelect(evt) {
 		var files = evt.target.files; // FileList object
@@ -65,57 +78,50 @@
 			return function(e) {
 				// DEBUG: display the content
 				// document.getElementById('content').innerHTML = "<pre>"+e.target.result+"</pre>";
-				var locations = {};
+				locations = {};
+				var miny = 2013;
+				var maxy = 1900;
 				lines = e.target.result.split("\n");
-				for (var i = 0; i < lines.length; i++) {
+				// todo:
+				// use location[year] = {loc1 : num, loc2: num} to store
+				// to visualize up to year 2007, just sum up the nums of the locations before 2007.
+				// may need to use a hash to store the counts
+				
+				// first line is CSV description
+				for (var i = 1; i < lines.length; i++) {
 					if (lines[i] == "") continue;
-					data = lines[i].split(' ');
+					data = lines[i].split(',');
 					// use latitude and longitude as key
 					var latLng = data[1]+' '+data[2];
 					var year = data[0];
+					
+					// update year range
+					if (year < miny) miny = year;
+					if (year > maxy) maxy = year;
+					
+					// update data
 					if(! (latLng in locations)) locations[latLng] = {};
 					if(! (year in locations[latLng])) locations[latLng][year] = 0;
 					locations[latLng][year]++;
-					console.log(locations);
 				}
-				var citymap = {};
-				citymap['chicago'] = {
-					center: new google.maps.LatLng(41.878113, -87.629798),
-					population: 2842518
-				};
-				citymap['newyork'] = {
-					center: new google.maps.LatLng(40.714352, -74.005973),
-					population: 8143197
-				};
-				citymap['losangeles'] = {
-					center: new google.maps.LatLng(34.052234, -118.243684),
-					population: 3844829
-				}
-
-				var cityCircle;
-				for (var city in citymap) {
-					// Construct the circle for each value in citymap. We scale population by 20.
-					var populationOptions = {
-						strokeColor: '#FF0000',
-						strokeOpacity: 0.8,
-						strokeWeight: 2,
-						fillColor: '#FF0000',
-						fillOpacity: 0.35,
-						map: map,
-						center: citymap[city].center,
-						radius: citymap[city].population / 20
-					};
-					cityCircle = new google.maps.Circle(populationOptions);
-				}
+			    
+				// update slider
+				var slider = document.getElementById('years');
+				slider.min = miny;
+				slider.max = maxy;
+				slider.value = miny;
+				document.getElementById('miny').innerHTML = miny;
+				document.getElementById('maxy').innerHTML = maxy;
+				document.getElementById('yearText').value = miny;
 			};
-			})(f);
+			})(f);	// end closure
 
-			reader.readAsText(f);
-		}
+		reader.readAsText(f);
+	}
 
-		document.getElementById('files').addEventListener('change', handleFileSelect, false);
-		</script>
+	document.getElementById('files').addEventListener('change', handleFileSelect, false);
+	</script>
 
-		<div id="map_canvas" style="width:100%; height:90%"></div>
-	</body>
-	</html>
+	<div id="map_canvas" style="width:100%; height:90%"></div>
+</body>
+</html>
