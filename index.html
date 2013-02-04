@@ -60,13 +60,31 @@
 		}
 	}
 	
-	function addCircle(latLng, count) {
+	// the following two functions are from
+	// http://stackoverflow.com/questions/3426404/create-a-hexadecimal-colour-based-on-a-string-with-jquery-javascript
+	function hashCode(str) { // java String#hashCode
+	    var hash = 0;
+	    for (var i = 0; i < str.length; i++) {
+	       hash = str.charCodeAt(i) + ((hash << 5) - hash);
+	    }
+	    return hash;
+	}
+	
+	function intToRGB(i){
+	    return ((i>>16)&0xFF).toString(16) + 
+	           ((i>>8)&0xFF).toString(16) + 
+	           (i&0xFF).toString(16);
+	}
+	
+	// TODO: size the dots according to the largest value
+	// TODO: add description of dot when mouse over
+	function addCircle(latLng, color, count) {
 		var dotOpt = {
-			strokeColor: '#FF0000',
+			strokeColor: color,
 			strokeOpacity: 0.8,
 			strokeWeight: 2,
-			fillColor: '#FF0000',
-			fillOpacity: 0.35,
+			fillColor: color,
+			fillOpacity: 0.7,
 			map: window.map,
 			center: latLng,
 			radius: count * 10000
@@ -89,8 +107,8 @@
 				if (parseInt(y) <= year) count += parseInt(locations[loc][y]);
 			}
 			// display in the map
-			// color = ... hash in a unique color
-			addCircle(gLatLng, count);
+			var color = "#" + intToRGB(hashCode(loc));
+			addCircle(gLatLng, color, count);
 		}
 	}
 	
@@ -163,6 +181,6 @@
 	document.getElementById('files').addEventListener('change', handleFileSelect, false);
 	</script>
 
-	<div id="map_canvas" style="width:100%; height:90%"></div>
+	<div id="map_canvas" style="width:100%; height:100%"></div>
 </body>
 </html>
