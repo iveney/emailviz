@@ -44,6 +44,10 @@
 				alert("Geocode was not successful for the following reason: " + status);
 			}
 		});
+		google.maps.event.addDomListener(window, 'load', initialize);
+		
+		// remember the last opened info window
+		lastOpenedInfoWindow = null;
 	}
 	
 	function updateValue(val) {
@@ -87,10 +91,24 @@
 			fillOpacity: 0.7,
 			map: window.map,
 			center: latLng,
-			radius: count * 10000
+			position: latLng,
+			radius: Math.sqrt(count) * 10000
 		};
-		locCircle = new google.maps.Circle(dotOpt);
+		var locCircle = new google.maps.Circle(dotOpt);
 		circlesArray.push(locCircle);
+		return locCircle;
+	}
+	
+	function addInfoWindow(circle, contentString) {
+		var infowindow = new google.maps.InfoWindow({
+			content: contentString
+		});
+		
+		google.maps.event.addListener(circle, 'click', function(event) {
+			if (lastOpenedInfoWindow != null) lastOpenedInfoWindow.close();
+	        infowindow.open(circle.get('map'), circle);
+			lastOpenedInfoWindow = infowindow;
+        });
 	}
 	
 	// update the map according to year
@@ -103,12 +121,23 @@
 			latLng = loc.split(' ');
 			gLatLng = new google.maps.LatLng(latLng[0], latLng[1]);
 			var count = 0;
+			var temp = "";
 			for (var y in locations[loc]) {
-				if (parseInt(y) <= year) count += parseInt(locations[loc][y]);
+				if (parseInt(y) <= year) {
+					emailsInYear = parseInt(locations[loc][y]);
+					count += emailsInYear;
+					temp += y + ": " + emailsInYear + "<br>";
+				}
 			}
+			if (count == 0) continue;
+			
 			// display in the map
 			var color = "#" + intToRGB(hashCode(loc));
-			addCircle(gLatLng, color, count);
+			var circle = addCircle(gLatLng, color, count);
+			var contentString = "Total: " + count + "<br>" + temp;
+			
+			// creates an info window for this location
+			addInfoWindow(circle, contentString);
 		}
 	}
 	
@@ -157,7 +186,9 @@
 					if (year > maxy) maxy = year;
 					
 					// update data
-					if(! (latLng in locations)) locations[latLng] = {};
+					if(! (latLng in locations)) {
+						locations[latLng] = {};
+					}
 					if(! (year in locations[latLng])) locations[latLng][year] = 0;
 					locations[latLng][year]++;
 				}
