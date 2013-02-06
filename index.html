@@ -201,7 +201,7 @@
 			// var color = "#" + intToRGB(hashCode(loc));
 			var color = getRGBFromSentiment(sentiment);
 			var circle = addCircle(gLatLng, color, count);
-			var contentString = "Total: " + count + "<br>" + temp;
+			var contentString = "Total: " + count + ", sentiment = " + sentiment.toFixed(2) + "<br>" + temp;
 			
 			// creates an info window for this location
 			addInfoWindow(circle, contentString);
